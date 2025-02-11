@@ -1,0 +1,42 @@
+import sys
+import random
+
+def fuzzer(prng_seed, num_iterations):
+    try:
+        with open("_seed_", "rb") as seed_file:
+            input_data = bytearray(seed_file.read())
+    except FileNotFoundError:
+        sys.stderr.write("Error: _seed_ file not found.\n")
+        sys.exit(1)
+
+    if not input_data:
+        sys.stderr.write("Warning: _seed_ file is empty.\n")
+    random.seed(prng_seed)
+
+    for i in range(num_iterations):
+        # Mutate each byte with 13% probability
+        for j in range(len(input_data)):
+            if random.random() < 0.13:  # 13% chance
+                input_data[j] = random.randint(0, 255)
+
+        if (i + 1) % 500 == 0:
+            input_data.extend(random.randint(0, 255) for _ in range(10))
+
+    sys.stdout.buffer.write(input_data)
+
+if __name__ == "__main__":
+    # Parse command-line arguments
+    if len(sys.argv) != 3:
+        sys.stderr.write("Usage: ./fuzzer prng_seed num_of_iterations\n")
+        sys.exit(1)
+
+    try:
+        prng_seed = int(sys.argv[1])
+        num_iterations = int(sys.argv[2])
+        if num_iterations < 0:
+            raise ValueError("num_of_iterations must be non-negative.")
+    except ValueError as e:
+        sys.stderr.write(f"Error: {e}\n")
+        sys.exit(1)
+
+    fuzzer(prng_seed, num_iterations)
