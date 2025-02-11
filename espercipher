@@ -1,0 +1,32 @@
+# Function to perform right rotation by 'd' bits
+def rrot(n, d):
+    return ((n >> d) | (n << (8 - d))) & 0xff
+
+# Key and rotation values from esperkey.txt
+key = "rORTrfA"
+keyrotate = 2
+
+# Generate the keyxor list from the key string
+keyxor = [ord(char) for char in key]
+
+# Load the ciphertext
+with open("/home/hacker/ciphertext.txt", "rb") as cipher_file:
+    ciphertext = cipher_file.read()
+
+# Decrypt the ciphertext
+plaintext = []
+for i in range(len(ciphertext)):
+    # Reverse the XOR operation
+    decrypted_byte = ciphertext[i] ^ keyxor[i % len(keyxor)]
+    # Reverse the rotation
+    decrypted_byte = rrot(decrypted_byte, keyrotate)
+    plaintext.append(decrypted_byte)
+
+# Convert the decrypted bytes to a string
+decrypted_message = bytes(plaintext).decode("utf-8", errors="ignore")
+
+# Write the decrypted message to esper_plaintext.txt
+with open("/home/hacker/esper_plaintext.txt", "w") as plain_file:
+    plain_file.write(decrypted_message)
+
+print("Decrypted Message written to esper_plaintext.txt")
